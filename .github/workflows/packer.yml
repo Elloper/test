@@ -1,20 +1,30 @@
-name: packer
+name: packer-build
 
 on:
   push:
+  pull_request:
 
 jobs:
-  build:
+  packer:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-packer@main
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
 
-      - name: Run packer
+      - name: Cache Packer plugins
+        uses: actions/cache@v3
+        with:
+          path: ~/.config/packer/plugins
+          key: packer-plugins-${{ runner.os }}
+
+      - name: Packer init
         env:
           PACKER_GITHUB_API_TOKEN: ${{ secrets.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 }}
-        run: |
-          packer init .
-          packer build .
+        run: packer init .
+
+      - name: Packer build
+        run: packer build .
